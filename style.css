@@ -2,6 +2,7 @@ body{
     display: flex;
     align-items: center;
     justify-content: center;
+    text-align: center;
 }
 .container{
     display: flex;
@@ -16,6 +17,7 @@ body{
     height: 100px;
     border: 1px solid black;
     transition: 0.3s ease;
+    justify-content: center;
 }
 .place-game:hover{
     background-color: rgb(216, 216, 216);

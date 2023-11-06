@@ -14,25 +14,41 @@ var win=document.getElementById('win')
 var lose=document.getElementById('lose')
 var nobody=document.getElementById('nobody')
 var emptyPlace=false;
-
+var gameOver=false;
+// Перезагружаем страницу
 function refreshPage() {
-    // Перезагружаем страницу
     location.reload();
 }
-
+//функция для крестика
+function player(id, addX){
+    var element=document.getElementById(id)
+    element.innerHTML='<p>X</p>';
+    element.style.background='green'
+    box.removeEventListener('click',addX)
+}
+//функция для нолика
+function bot(id,addX){
+    var element=document.getElementById(id)
+    element.innerHTML='<p>O</p>';
+    element.style.background='red'
+    element.removeEventListener('click',addX)
+}
+//forEach для всех div в html
 divs.forEach(function(div) {
+    //найдем нажатого элемента и ставим крестик
     div.addEventListener('click',function addX(event){
         taped=false;
         id = event.target.id;
         console.log(id);
         box=document.getElementById(id)
+        //убираем из массива нажатый элемент что бы бот знал свободные места
         for(var o=0;o<places.length;o++){
             if(places[o]==id){
                 places.splice(o,1)
                 break;
             }
         }
-        box.innerHTML='<p>X</p>'
+        player(id, addX)
         
 
         for(var i=0;i<8;i++){
@@ -56,6 +72,7 @@ divs.forEach(function(div) {
         }
         //ищем победного хода
         for(var i=0;i<8;i++){
+            //ищем где стоит 2 нолика
             var p;
             var countO=0;//
             for(p=0;p<3;p++){
@@ -63,13 +80,18 @@ divs.forEach(function(div) {
                     countO++;
                 }
             }
-            if(countO==2){
+            //ищем свободного места для победы
+            if(countO==2 & places.length!=0){
                 for(var findEmtpy=0; findEmtpy<3;findEmtpy++){
-                    if(wins[i][findEmtpy]!='o'){
+                    if(wins[i][findEmtpy]!='o' & wins[i][findEmtpy]!='x'){
                         id=wins[i][findEmtpy]
-                        document.getElementById(id).innerHTML='<p>O</p>';
-                        windowNewGame.style.display='flex'
-                        lose.style.display='flex'
+                        bot(id,addX)
+                        //побеждаем
+                        if(gameOver==false){
+                            windowNewGame.style.display='flex'
+                            lose.style.display='flex'
+                            gameOver=true;
+                        }
                         taped=true;
                         break;
                     }
@@ -77,51 +99,60 @@ divs.forEach(function(div) {
             }
         }
 //      В случае нет победного хода ищем опасного момента от пользователя
-        for(var i=0;i<8;i++){
-            var countX=0,p;
-            var countO=0;
-            for(p=0;p<3;p++){
-                if(wins[i][p]=='x'){
-                    countX++;
-                }
-            }
-            if(countX==2){
-                var thisPlace=false;
+        if(taped==false){
+
+            // ищем где 2 крестика
+            for(var i=0;i<8;i++){
+                var countX=0,p;
+                var countO=0;
                 for(p=0;p<3;p++){
-                    if(wins[i][p]!='x'& wins[i][p]!='o'){
-                        id=wins[i][p];
-                        thisPlace=true;
+                    if(wins[i][p]=='x'){
+                        countX++;
                     }
                 }
-                if(thisPlace==true){
-                    box=document.getElementById(id)
-                    box.innerHTML='<p>O</p>';
-                    taped=true;
-                    for(var o=0;o<places.length;o++){
-                        if(places[o]==id){
-                            places.splice(o,1)
+                if(countX==2){
+                    var thisPlace=false;
+                    // ищем свободного места
+                    for(p=0;p<3;p++){
+                        if(wins[i][p]!='x'& wins[i][p]!='o'){
+                            id=wins[i][p];
+                            thisPlace=true;
                         }
                     }
-                    for(var i=0;i<8;i++){
-                        var countO=0;
-                        for(var p=0;p<3;p++){
-                            if(id==wins[i][p]){
-                                wins[i][p]='o';
-                            }
-                            if(wins[i][p]=='o'){
-                                countO++;
+                    if(thisPlace==true){
+                        box=document.getElementById(id)
+                        bot(id,addX)
+                        taped=true;
+                        for(var o=0;o<places.length;o++){
+                            if(places[o]==id){
+                                places.splice(o,1)
                             }
                         }
-                        if(countO==3){
-                            windowNewGame.style.display='flex'
-                            lose.style.display='flex'
-                            break;
+                        for(var i=0;i<8;i++){
+                            var countO=0;
+                            for(var p=0;p<3;p++){
+                                if(id==wins[i][p]){
+                                    wins[i][p]='o';
+                                }
+                                if(wins[i][p]=='o'){
+                                    countO++;
+                                }
+                            }
+                            if(countO==3){
+                                if(gameOver==false){
+                                    windowNewGame.style.display='flex'
+                                    lose.style.display='flex'
+                                    gameOver=true
+                                }
+                                break;
+                            }
                         }
+                        
                     }
-                    
                 }
             }
         }
+        // вслучае если нет и опосного момента ставим рондомно
         if(taped==false){
             if(places.length==0){
                 nobody.style.display='flex'
@@ -131,7 +162,7 @@ divs.forEach(function(div) {
                 index=Math.floor(Math.random() * places.length);
                 id=places[index];
                 places.splice(index,1);
-                document.getElementById(id).innerHTML='<p>O</p>';
+                bot(id,addX)
 
                 taped=true;
                 for(var i=0;i<8;i++){
@@ -145,8 +176,10 @@ divs.forEach(function(div) {
                         }
                     }
                     if(countO==3){
-                        windowNewGame.style.display='flex'
-                        lose.style.display='flex'
+                        if(gameOver==false){
+                            windowNewGame.style.display='flex'
+                            lose.style.display='flex'
+                        }
                         break;
                     }
                 }
